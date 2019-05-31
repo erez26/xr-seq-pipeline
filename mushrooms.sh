@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 ORGANISM="Saccharomyces_cerevisiae"
 GENOME="R64-1-1"
-ENSEMBL_VERSION="37"
+ENSEMBL_VERSION="92"
 ENSEMBL_BASE_BASE="ftp.ensembl.org"
 ENSEMBL_BASE="ftp://${ENSEMBL_BASE_BASE}/pub"
 FASTA_MID="fasta"
