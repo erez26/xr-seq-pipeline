@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 
 
-jq -c '.data[] | select(.protocol == "XR-seq") | .title' sampleList.json | while read -r item; do
+	jq -c '.data[] | select(.protocol == "XR-seq") | .title' sampleList.json | while read -r item; do
 
 	echo $item
 
-
-	jq -c '.data[] | select(.title == ' + $item + ') | .reference_genome' sampleList.json | read -r genome
-	jq -c '.data[] | select(.title == '+ $item + ') | .SRA.runs' sampleList.json | read -r srr
-
+	genome=$(jq --raw-output '.data[] | select(.title == '$item') | .reference_genome' sampleList.json)
+	srr_list=$(jq --raw-output '.data[] | select(.title == '$item') | "fastq-dump --stdout " + .SRA.runs[] + " >${SAMPLE}.fastq"' sampleList.json)
+	echo $srr_list
 	echo $genome
-	echo $srr
+	
+	SAMPLE=$item
 
-	SAMPLE=$item 
-	fastq-dump --stdout $srr >${SAMPLE}.fastq
+	$srr_list #fastq-dump arragment
 	GENOME_DIR=/data/genomes/$genome
 	BOWTIE2_IND=${GENOME_DIR}/Bowtie2/genome
+
 
 	echo "Cut adapter"
 	cutadapt -a TGGAATTCTCGGGTGCCAAGG AACTCCAGTNNNNNNACGATCTCGTATGCCGTCTTCTGCTTG -o ${SAMPLE}_cutadapt.fastq ${SAMPLE}.fastq
@@ -62,8 +62,5 @@ jq -c '.data[] | select(.protocol == "XR-seq") | .title' sampleList.json | while
 	echo "Count read values for transcribed (TS) and nontranscribed (NTS) strands"
 	bedtools intersect -sorted -a ${GENOME_DIR}/genes.bed -b ${SAMPLE}_cutadapt_sorted.bed -wa -c -S -F 0.5 > ${SAMPLE}_cutadapt_sorted_TScount.txt
 	bedtools intersect -sorted -a ${GENOME_DIR}/genes.bed -b ${SAMPLE}_cutadapt_sorted.bed -wa -c -s -F 0.5 > ${SAMPLE}_cutadapt_sorted_NTScount.txt
-
-
-
 
 done
